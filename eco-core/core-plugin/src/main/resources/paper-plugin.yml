@@ -1,22 +1,29 @@
 name: ${pluginName}
 version: ${version}
 main: com.willfp.ecoenchants.EcoEnchantsPlugin
-api-version: 1.17
-authors: [ Auxilor ]
-website: willfp.com
-depend:
-  - eco
-softdepend:
-  - CMI
-  - EssentialsX
+api-version: 1.19
 
-commands:
-  ecoenchants:
-    description: Base Command
-    permission: ecoenchants.command.ecoenchants
-  enchantinfo:
-    description: Show info about an enchant
-    permission: ecoenchants.command.enchantinfo
+dependencies:
+  - name: eco
+    required: true
+    bootstrap: false
+
+  - name: libreforge
+    required: false
+    bootstrap: false
+
+  - name: CMI
+    required: false
+    bootstrap: false
+
+  - name: EssentialsX
+    required: false
+    bootstrap: false
+
+load-after:
+  - name: eco
+    bootstrap: false
+
 
 permissions:
   ecoenchants.*:
