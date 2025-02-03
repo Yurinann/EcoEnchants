@@ -3,9 +3,9 @@ package com.willfp.ecoenchants.mechanics
 import com.willfp.eco.core.fast.fast
 import com.willfp.eco.util.NumberUtils
 import com.willfp.ecoenchants.EcoEnchantsPlugin
-import com.willfp.ecoenchants.enchants.EcoEnchant
-import com.willfp.ecoenchants.enchants.EcoEnchants
-import com.willfp.ecoenchants.enchants.conflictsWithDeep
+import com.willfp.ecoenchants.enchant.EcoEnchant
+import com.willfp.ecoenchants.enchant.EcoEnchants
+import com.willfp.ecoenchants.enchant.conflictsWithDeep
 import com.willfp.ecoenchants.target.EnchantmentTargets.isEnchantable
 import org.bukkit.Material
 import org.bukkit.event.EventHandler
@@ -46,7 +46,7 @@ class VillagerSupport(
         val enchantments = EcoEnchants.values().shuffled()
 
         for (enchantment in enchantments) {
-            if (!enchantment.isTradeable) {
+            if (!enchantment.isObtainableThroughTrading) {
                 continue
             }
 
@@ -58,7 +58,7 @@ class VillagerSupport(
                 continue
             }
 
-            if (enchants.any { (it, _) -> enchantment.conflictsWithDeep(it) }) {
+            if (enchants.any { (it, _) -> enchantment.enchantment.conflictsWithDeep(it) }) {
                 continue
             }
 
@@ -73,11 +73,11 @@ class VillagerSupport(
                 continue
             }
 
-            val maxLevel = enchantment.maxLevel
+            val maxLevel = enchantment.maximumLevel
 
             val levelPart1 = event.recipe.ingredients[0].amount / 64.0
-            val levelPart2 = NumberUtils.bias(levelPart1, enchantment.type.highLevelBias)
-            val levelPart3 = NumberUtils.triangularDistribution(0.0, 1.0, levelPart2)
+            val levelPart2 = NumberUtils.triangularDistribution(0.0, 1.0, levelPart1)
+            val levelPart3 = NumberUtils.bias(levelPart2, enchantment.type.highLevelBias)
             val level = ceil(levelPart3 * maxLevel).coerceIn(1.0..maxLevel.toDouble()).toInt()
 
             multiplier /= this.plugin.configYml.getDouble("villager.reduction")
@@ -85,10 +85,10 @@ class VillagerSupport(
             if (result.type == Material.ENCHANTED_BOOK) {
                 // Only allow one enchantment
                 enchants.clear()
-                enchants[enchantment] = level
+                enchants[enchantment.enchantment] = level
                 break
             } else {
-                enchants[enchantment] = level
+                enchants[enchantment.enchantment] = level
             }
         }
 

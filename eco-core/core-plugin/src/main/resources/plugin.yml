@@ -4,9 +4,11 @@ main: com.willfp.ecoenchants.EcoEnchantsPlugin
 api-version: 1.17
 authors: [ Auxilor ]
 website: willfp.com
+load: STARTUP
 depend:
   - eco
 softdepend:
+  - libreforge
   - CMI
   - EssentialsX
 
@@ -17,6 +19,9 @@ commands:
   enchantinfo:
     description: Show info about an enchant
     permission: ecoenchants.command.enchantinfo
+  enchant:
+    description: Enchants an item
+    permission: ecoenchants.command.enchant
 
 permissions:
   ecoenchants.*:
@@ -36,6 +41,7 @@ permissions:
       ecoenchants.command.giverandombook: true
       ecoenchants.command.enchantinfo: true
       ecoenchants.command.gui: true
+      ecoenchants.command.enchant: true
   ecoenchants.anvil.*:
     description: All anvil perks
     default: op
@@ -63,3 +69,6 @@ permissions:
   ecoenchants.command.gui:
     description: Allows the use of /ecoenchants gui.
     default: true
+  ecoenchants.command.enchant:
+    description: Allows the use of /enchant.
+    default: op

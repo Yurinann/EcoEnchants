@@ -1,8 +1,7 @@
 package com.willfp.ecoenchants.display
 
-import com.willfp.eco.core.config.updating.ConfigUpdater
 import com.willfp.ecoenchants.EcoEnchantsPlugin
-import com.willfp.ecoenchants.enchants.wrap
+import com.willfp.ecoenchants.enchant.wrap
 import com.willfp.ecoenchants.rarity.EnchantmentRarities
 import com.willfp.ecoenchants.rarity.EnchantmentRarity
 import com.willfp.ecoenchants.type.EnchantmentType
@@ -17,9 +16,7 @@ interface EnchantmentSorter {
 object EnchantSorter {
     private val sorters = mutableListOf<EnchantmentSorter>()
 
-    @JvmStatic
-    @ConfigUpdater
-    fun update(plugin: EcoEnchantsPlugin) {
+    internal fun reload(plugin: EcoEnchantsPlugin) {
         sorters.clear()
 
         if (plugin.configYml.getBool("display.sort.rarity")) {
@@ -44,21 +41,19 @@ fun List<EnchantmentSorter>.getSafely(index: Int) =
 
 object AlphabeticSorter : EnchantmentSorter {
     override fun sort(enchantments: Collection<Enchantment>, children: List<EnchantmentSorter>): List<Enchantment> {
-        return enchantments.sortedBy { ChatColor.stripColor(it.wrap().displayName) }
+        return enchantments.sortedBy { ChatColor.stripColor(it.wrap().getFormattedName(0)) }
     }
 }
 
 object LengthSorter : EnchantmentSorter {
     override fun sort(enchantments: Collection<Enchantment>, children: List<EnchantmentSorter>): List<Enchantment> {
-        return enchantments.sortedBy { ChatColor.stripColor(it.wrap().displayName)!!.length }
+        return enchantments.sortedBy { ChatColor.stripColor(it.wrap().getFormattedName(0))!!.length }
     }
 }
 
 object TypeSorter : EnchantmentSorter {
     private val types = mutableListOf<EnchantmentType>()
 
-    @JvmStatic
-    @ConfigUpdater
     fun update(plugin: EcoEnchantsPlugin) {
         types.clear()
         types.addAll(plugin.configYml.getStrings("display.sort.type-order").mapNotNull {
@@ -86,8 +81,6 @@ object TypeSorter : EnchantmentSorter {
 object RaritySorter : EnchantmentSorter {
     private val rarities = mutableListOf<EnchantmentRarity>()
 
-    @JvmStatic
-    @ConfigUpdater
     fun update(plugin: EcoEnchantsPlugin) {
         rarities.clear()
         rarities.addAll(plugin.configYml.getStrings("display.sort.rarity-order").mapNotNull {

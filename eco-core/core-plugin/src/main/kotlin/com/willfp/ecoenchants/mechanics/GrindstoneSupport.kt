@@ -2,39 +2,24 @@ package com.willfp.ecoenchants.mechanics
 
 import com.willfp.eco.core.EcoPlugin
 import com.willfp.eco.core.fast.fast
-import com.willfp.eco.util.StringUtils
-import com.willfp.ecoenchants.enchants.EcoEnchants
-import com.willfp.ecoenchants.enchants.wrap
-import org.bukkit.ChatColor
-import org.bukkit.Material
+import com.willfp.eco.core.gui.player
+import com.willfp.ecoenchants.enchant.wrap
 import org.bukkit.enchantments.Enchantment
-import org.bukkit.entity.EntityType
 import org.bukkit.entity.ExperienceOrb
-import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
-import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
-import org.bukkit.event.inventory.InventoryType
-import org.bukkit.event.inventory.PrepareAnvilEvent
 import org.bukkit.inventory.GrindstoneInventory
-import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.Damageable
 import org.bukkit.inventory.meta.EnchantmentStorageMeta
 import java.util.*
-import javax.swing.text.html.HTML.Tag.P
-import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.pow
-import kotlin.math.roundToInt
 
 @Suppress("DEPRECATION")
 class GrindstoneSupport(
     private val plugin: EcoPlugin
 ) : Listener {
     @EventHandler
-    fun onGrindstone(event: InventoryClickEvent) {
+    fun preGrindstone(event: InventoryClickEvent) {
         val inventory = event.view.topInventory as? GrindstoneInventory ?: return
 
         // Run everything later to await event completion
@@ -92,6 +77,33 @@ class GrindstoneSupport(
             }
 
             result.itemMeta = meta
+        }
+    }
+
+    @EventHandler
+    fun postGrindstone(event: InventoryClickEvent) {
+        val inventory = event.clickedInventory as? GrindstoneInventory ?: return
+
+        if (event.slot != 2) {
+            return
+        }
+
+        val item = inventory.result ?: return
+
+        if (item.fast().getEnchants(true).isEmpty()) {
+            return
+        }
+
+        // Force remove XP
+        plugin.scheduler.runLater(1) {
+            val loc = inventory.location
+
+            val orbs = loc?.getNearbyEntities(3.0, 3.0, 3.0)
+                ?: emptyList()
+
+            for (orb in orbs.filterIsInstance<ExperienceOrb>()) {
+                orb.remove()
+            }
         }
     }
 }

@@ -6,7 +6,7 @@ import com.willfp.eco.core.registry.Registrable
 import com.willfp.ecoenchants.libreforge.TriggerEnchantType
 import com.willfp.ecoenchants.mechanics.infiniteIfNegative
 import com.willfp.libreforge.triggers.Triggers
-import java.util.*
+import java.util.Objects
 
 class EnchantmentType(
     private val plugin: EcoPlugin,
@@ -15,7 +15,7 @@ class EnchantmentType(
     val id = config.getString("id")
     val format = config.getString("format")
     val limit = config.getInt("limit").infiniteIfNegative()
-    val highLevelBias = config.getDouble("high-level-bias")
+    val highLevelBias = config.getDouble("high-level-bias").coerceAtMost(0.999)
     val noGrindstone = config.getBool("no-grindstone")
 
     override fun equals(other: Any?): Boolean {
@@ -31,7 +31,7 @@ class EnchantmentType(
     }
 
     override fun onRegister() {
-        Triggers.register(TriggerEnchantType(plugin, this.id))
+        Triggers.register(TriggerEnchantType(plugin, this))
     }
 
     override fun getID(): String {

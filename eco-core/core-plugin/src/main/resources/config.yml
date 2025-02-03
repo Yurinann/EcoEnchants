@@ -29,6 +29,7 @@ anvil:
   cost-exponent: 0.95 # The exponent for each enchant level to prevent constant "Too Expensive!" problems
   enchant-limit: -1 # The limit for the amount of enchantments on an item (-1 to disable)
   use-rework-penalty: true # If the rework penalty should be applied
+  max-repair-cost: 40 # Override the maximum repair cost (-1 to make it infinite). "Too Expensive" message cannot be removed, but this is purely visual.
 
 # Options for how enchantments are displayed on items
 display:
@@ -72,12 +73,12 @@ display:
     enabled: true # If enchantments should be collapsed in lore
     threshold: 9 # Above this amount, enchantments will be collapsed
     per-line: 2 # The amount of enchantments to put in each line
-    delimiter: ", " # The delimiter between enchantments
+    delimiter: ",&r " # The delimiter between enchantments
 
   descriptions:
     enabled: true # If enchantment descriptions should be shown in lore
     threshold: 5 # Above this amount, enchantment descriptions will not be shown
-    word-wrap: 36 # Number of characters to have on each line
+    word-wrap: 27 # Number of characters to have on each line
     format: "&8"
 
   require-enchantable: true # If EcoEnchants should not display on non-enchantable items.
@@ -96,7 +97,6 @@ enchantinfo:
     row: 2
     column: 5
     show-max-level: true # Whether the book should be the max level or level 1
-    line-wrap-format: "&a" # Color for line wrapping
     lore: # The description is automatically appended
       - ""
       - "&fMax Level: &a%max_level%"

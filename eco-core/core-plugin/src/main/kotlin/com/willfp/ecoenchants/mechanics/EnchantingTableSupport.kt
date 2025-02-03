@@ -1,14 +1,15 @@
 package com.willfp.ecoenchants.mechanics
 
-import com.willfp.eco.core.config.updating.ConfigUpdater
 import com.willfp.eco.core.items.Items
 import com.willfp.eco.core.items.TestableItem
 import com.willfp.eco.core.recipe.parts.EmptyTestableItem
 import com.willfp.eco.util.NumberUtils
+import com.willfp.eco.util.randDouble
 import com.willfp.ecoenchants.EcoEnchantsPlugin
-import com.willfp.ecoenchants.enchants.EcoEnchant
-import com.willfp.ecoenchants.enchants.EcoEnchants
-import com.willfp.ecoenchants.enchants.conflictsWithDeep
+import com.willfp.ecoenchants.enchant.EcoEnchant
+import com.willfp.ecoenchants.enchant.EcoEnchants
+import com.willfp.ecoenchants.enchant.conflictsWithDeep
+import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.enchantments.Enchantment
@@ -80,7 +81,7 @@ class EnchantingTableSupport(
         val enchantments = EcoEnchants.values().shuffled()
 
         for (enchantment in enchantments) {
-            if (!enchantment.isEnchantable) {
+            if (!enchantment.isObtainableThroughEnchanting) {
                 continue
             }
 
@@ -92,7 +93,12 @@ class EnchantingTableSupport(
                 continue
             }
 
-            if (NumberUtils.randFloat(0.0, 1.0) > enchantment.enchantmentRarity.tableChance * multiplier) {
+            val baseChance = enchantment.enchantmentRarity.tableChance * multiplier
+
+            val chanceEvent = EnchantingTableChanceGenerateEvent(player, item, enchantment.enchantment, baseChance)
+            Bukkit.getPluginManager().callEvent(chanceEvent)
+
+            if (NumberUtils.randFloat(0.0, 1.0) > chanceEvent.chance) {
                 continue
             }
 
@@ -108,7 +114,7 @@ class EnchantingTableSupport(
                 break
             }
 
-            if (toAdd.any { (it, _) -> enchantment.conflictsWithDeep(it) }) {
+            if (toAdd.any { (it, _) -> enchantment.enchantment.conflictsWithDeep(it) }) {
                 continue
             }
 
@@ -119,17 +125,22 @@ class EnchantingTableSupport(
                 continue
             }
 
-            val maxLevel = enchantment.maxLevel
+            val maxLevel = enchantment.maximumLevel
             val maxObtainableLevel = plugin.configYml.getInt("enchanting-table.maximum-obtainable-level")
 
-            val levelPart1 = cost / maxObtainableLevel.toDouble()
-            val levelPart2 = NumberUtils.bias(levelPart1, enchantment.type.highLevelBias)
-            val levelPart3 = NumberUtils.triangularDistribution(0.0, 1.0, levelPart2)
+            val levelPart1 = if (enchantment.type.highLevelBias > 0) {
+                randDouble(0.0, 1.0)
+            } else {
+                cost / maxObtainableLevel.toDouble()
+            }
+
+            val levelPart2 = NumberUtils.triangularDistribution(0.0, 1.0, levelPart1)
+            val levelPart3 = NumberUtils.bias(levelPart2, enchantment.type.highLevelBias)
             val level = ceil(levelPart3 * maxLevel).coerceIn(1.0..maxLevel.toDouble()).toInt()
 
             multiplier /= this.plugin.configYml.getDouble("enchanting-table.reduction")
 
-            toAdd[enchantment] = level
+            toAdd[enchantment.enchantment] = level
         }
 
         toAdd.forEach(event.enchantsToAdd::putIfAbsent)
@@ -227,9 +238,7 @@ object ExtraItemSupport {
 
     internal val extraEnchantableItems = mutableListOf<TestableItem>()
 
-    @JvmStatic
-    @ConfigUpdater
-    fun reload(plugin: EcoEnchantsPlugin) {
+    internal fun reload(plugin: EcoEnchantsPlugin) {
         extraEnchantableItems.clear()
         extraEnchantableItems.addAll(plugin.targetsYml.getStrings("extra-enchantable-items").map {
             Items.lookup(it)
